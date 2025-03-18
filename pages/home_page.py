@@ -14,4 +14,4 @@ class HomePage(BasePage):
             expected_url = f"https://www.amazon.com.tr/s?k={search_term}&page={page_number}"
         else:
             expected_url = f"https://www.amazon.com.tr/s?k={search_term}"
-        return self.get_url().startswith(expected_url)
+        return self.driver.current_url.startswith(expected_url)

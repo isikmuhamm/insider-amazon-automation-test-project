@@ -8,17 +8,26 @@ from selenium.common.exceptions import TimeoutException
 class BasePage:
 
     NAVBAR_ELEMENTS = (By.XPATH, "//*[@class='shop-menu pull-right']//a[text()='{}']")
-    AMAZON_SEARCH_BAR = (By.XPATH, "/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div[1]/input")
+    AMAZON_SEARCH_BAR = (By.ID, "twotabsearchtextbox")
     PAGE_NUMBER = (By.XPATH, "//a[@class='s-pagination-item s-pagination-button s-pagination-button-accessibility' and text()='{}']")
-
+    ACCEPT_COOKIES_BUTTON = (By.CSS_SELECTOR, "#sp-cc-accept")
 
     def __init__(self, driver):
         self.driver = driver
         self.wait = WebDriverWait(driver,10)
         self.action = ActionChains(driver)
 
+    def accept_cookies(self):
+        try:
+            cookie_button = self.wait_for_clickable(*self.ACCEPT_COOKIES_BUTTON)
+            cookie_button.click()
+        except TimeoutException:
+            # Çerez bildirimi zaten kapanmış olabilir
+            pass
+
     def go_to_url(self,url):
         self.driver.get(url)
+        return True
 
     def get_title(self):
         return self.driver.title
@@ -42,6 +51,8 @@ class BasePage:
         search_box.clear()
         search_box.send_keys(search_term)
         search_box.submit()
+        self.wait_for_clickable(*self.AMAZON_SEARCH_BAR)
+        return True
 
     def go_to_page_number(self, page_number):
         page_locator = (self.PAGE_NUMBER[0], self.PAGE_NUMBER[1].format(page_number))
