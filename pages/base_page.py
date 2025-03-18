@@ -1,15 +1,16 @@
-from lib2to3.pgen2.driver import Driver
-
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 
 
 class BasePage:
 
     NAVBAR_ELEMENTS = (By.XPATH, "//*[@class='shop-menu pull-right']//a[text()='{}']")
     AMAZON_SEARCH_BAR = (By.XPATH, "/html/body/div[1]/header/div/div[1]/div[2]/div/form/div[3]/div[1]/input")
+    PAGE_NUMBER = (By.XPATH, "//a[@class='s-pagination-item s-pagination-button s-pagination-button-accessibility' and text()='{}']")
+
 
     def __init__(self, driver):
         self.driver = driver
@@ -41,3 +42,20 @@ class BasePage:
         search_box.clear()
         search_box.send_keys(search_term)
         search_box.submit()
+
+    def go_to_page_number(self, page_number):
+        page_locator = (self.PAGE_NUMBER[0], self.PAGE_NUMBER[1].format(page_number))
+        self.click(*page_locator)
+
+    def click_visible_product(self, product_order):
+        # Find all visible product links
+        visible_products = self.driver.find_elements(By.CSS_SELECTOR, 
+            "div[data-component-type='s-search-result']:not([style*='display: none']) a.a-link-normal.s-line-clamp-4")
+        
+        if not visible_products:
+            raise Exception("No visible products found")
+            
+        if product_order < 1 or product_order > len(visible_products):
+            raise Exception(f"Product order {product_order} is out of range. Available products: {len(visible_products)}")
+        
+        visible_products[product_order - 1].click()
